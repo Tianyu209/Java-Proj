@@ -6,9 +6,12 @@ import java.util.ArrayList;
 public class NoteBook {
     private ArrayList<Folder> folders;
     public NoteBook(){
+        folders = new ArrayList<>();
     }
     public boolean insertNote(String folderName,Note note){
+
         for(Folder f:folders){
+
             if(f.getName().equals(folderName)){
                 for(Note n:f.getNotes()){
                     if(n.getTitle().equals(note.getTitle())){
@@ -19,8 +22,13 @@ public class NoteBook {
                 f.addNote(note);
                 return true;
             }
+
         }
-        return false;
+
+        Folder newFolder = new Folder(folderName);
+        newFolder.addNote(note);
+        folders.add(newFolder);
+        return true;
     }
     public boolean createTextNote(String folderName,String title){
        TextNote note = new TextNote(title);
@@ -30,7 +38,6 @@ public class NoteBook {
     ImageNote note = new ImageNote(title);
     return insertNote(folderName,note);
     }
-
     public ArrayList<Folder> getFolders(){
         return this.folders;
     }

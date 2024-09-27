@@ -25,5 +25,4 @@ public class Note {
     public String getTitle(){
         return this.title;
     }
-
 }
