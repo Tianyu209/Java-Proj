@@ -1,5 +1,4 @@
-import base.Folder;
-import base.NoteBook;
+package base;
 
 public class TestLab2 {
 
