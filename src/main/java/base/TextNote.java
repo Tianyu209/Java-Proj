@@ -6,4 +6,5 @@ public class TextNote extends Note{
         super(title);
     }
 
+
 }

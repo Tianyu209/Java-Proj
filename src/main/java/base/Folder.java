@@ -17,16 +17,15 @@ public class Folder {
     public ArrayList<Note> getNotes(){
         return this.notes;
     }
-    public String toString(){
-        int nText = 0;
-        int nImage = 0;
-        for(Note n:notes){
-            if(n instanceof ImageNote){
 
-            }
-        }
-        return name + ':' + nText + ':' + nImage;
+    @Override
+    public String toString() {
+        return "Folder{" +
+                "notes=" + notes +
+                ", name='" + name + '\'' +
+                '}';
     }
+
     public boolean equals(Folder f){
         return (f.name.equals(this.name));
     }
