@@ -1,5 +1,11 @@
 package hk.ust.comp3021;
 
+import java.io.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 public class DispatchSystem {
 
     /// The singleton you will use in the project.
@@ -22,9 +28,9 @@ public class DispatchSystem {
 
     private DispatchSystem() {
         if(dispatchSystem == null) return;
-        availableDishes = new List<Dish>;
-        availableOrders = new List<Order>;
-        dispatchedOrders = new List<Order>;
+        availableDishes = new ArrayList<>();
+        availableOrders = new ArrayList<>();
+        dispatchedOrders = new ArrayList<>();
     }
 
     /// Task 1: Implement the getInstance() method for the singleton pattern.
@@ -61,7 +67,19 @@ public class DispatchSystem {
                 }
 
                 String accountType = fields[1];
-
+                Long id = Long.parseLong(fields[0]);
+                fields[4] = fields[4].substring(1, fields[4].length() - 1);
+                String[] parts = fields[4].split(" ");
+                List<Double> arr = new ArrayList<>();
+                for (String part : parts) {
+                    arr.add(Double.parseDouble(part));
+                }
+                Location location = new Location(arr);
+                switch (accountType) {
+                    case "CUSTOMER" -> Account.accountManager.addCustomer(new Customer(id,fields[1],fields[2],fields[3],location,Integer.parseInt(fields[5]),fields[6],fields[7]));
+                    case "RIDER" -> Account.accountManager.addRider(new Rider(id,fields[1],fields[2],fields[3],location,fields[5],Integer.parseInt(fields[6]),Double.parseDouble(fields[7]),Integer.parseInt(fields[8])));
+                    case "RESTAURANT" -> Account.accountManager.addRestaurant(new Restaurant(id,fields[1],fields[2],fields[3],location,fields[5],fields[6]));
+                }
                 // TODO.
 
             }
@@ -83,7 +101,11 @@ public class DispatchSystem {
                 for (int i = 0; i < fields.length; i++) {
                     fields[i] = fields[i].trim();
                 }
-
+                Long id = Long.parseLong(fields[0]);
+                BigDecimal price = new BigDecimal(fields[3]);
+                Long Rid = Long.parseLong(fields[4]);
+                Dish d = new Dish(id,fields[1],fields[2],price,Rid);
+                availableDishes.add(d);
                 // TODO.
 
             }
@@ -105,8 +127,31 @@ public class DispatchSystem {
                 for (int i = 0; i < fields.length; i++) {
                     fields[i] = fields[i].trim();
                 }
+                Long id = Long.parseLong(fields[0]);
+                Integer status = Integer.parseInt(fields[1]);
+                Long Rid = Long.parseLong(fields[2]);
+                Long Cid = Long.parseLong(fields[3]);
+                Long Ct = Long.parseLong(fields[4]);
+                Boolean ispayed = Boolean.parseBoolean(fields[5]);
 
+                fields[6] = fields[6].substring(1, fields[6].length() - 1);
+                String[] parts = fields[6].split(" ");
+                List<Long> arr = new ArrayList<>();
+                for (String part : parts) {
+                    arr.add(Long.parseLong(part));
+                }
+                List<Dish> dishes = new ArrayList<>();
+                for(Long l:arr){
+                    dishes.add(getDishById(l));
+                }
+
+                Rider rider;
+                if(fields[7].equals("NA"))  rider = null;
+                else rider = Account.accountManager.getRiderById(Long.parseLong(fields[7]));
                 // TODO.
+                Order o = new Order(id,status,Account.accountManager.getRestaurantById(Rid),Account.accountManager.getCustomerById(Cid),Ct,ispayed,dishes,rider);
+                availableOrders.add(o);
+                
 
             }
         }

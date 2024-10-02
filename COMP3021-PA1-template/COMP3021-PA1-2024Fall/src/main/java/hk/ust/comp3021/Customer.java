@@ -1,15 +1,26 @@
 package hk.ust.comp3021;
 
 
-public class Customer {
+public class Customer extends Account{
     public Integer customerType;
     String gender;
     String email;
-    void register(){
+    public Customer(Long id,String accountType, String name, String contactNumber, Location location, Integer customerType, String gender, String email){
+        this.id = id;
+        this.accountType = accountType;
+        this.contactNumber = contactNumber;
+        this.name = name;
+        this.location = location;
+        this.customerType = customerType;
+        this.gender = gender;
+        this.email = email;
+    }
+    public void register(){
+        Account.accountManager.addCustomer(this);
 
     }
-    Integer getCustomerById(Long l){
-
+    Account getCustomerById(Long l){
+        return Account.getAccountById(l);
     }
     /// Do not modify this method.
     @Override

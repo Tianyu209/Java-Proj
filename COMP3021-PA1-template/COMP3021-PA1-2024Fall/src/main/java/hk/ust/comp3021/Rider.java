@@ -1,15 +1,26 @@
 package hk.ust.comp3021;
 
-public class Rider {
+public class Rider extends Account {
     String gender;
-    integer status;
+    Integer status;
     Double userRating;
     Integer monthTaskCount;
-    void register(){
-
+    public Rider(Long id,String accountType, String name, String contactNumber, Location location, String gender,Integer status,Double userRating,Integer monthTaskCount){
+        this.id = id;
+        this.accountType = accountType;
+        this.contactNumber = contactNumber;
+        this.name = name;
+        this.location = location;
+        this.gender = gender;
+        this.status = status;
+        this.userRating = userRating;
+        this.monthTaskCount = monthTaskCount;
     }
-    void getRiderById(long l){
-
+    public void register(){
+    Account.accountManager.addRider(this);
+    }
+    Rider getRiderById(long l){
+        return Account.accountManager.getRiderById(l);
     }
     /// Do not modify this method.
     @Override
