@@ -1,7 +1,18 @@
 package hk.ust.comp3021;
 
 public class Restaurant {
+    String district;
+    String street;
+    List<Dish> dishes;
+    void register(){
 
+    }
+    void addDish(Dish d){
+
+    }
+    void getRestaurantById(Long l){
+
+    }
     /// Do not modify this method.
     @Override
     public String toString() {
