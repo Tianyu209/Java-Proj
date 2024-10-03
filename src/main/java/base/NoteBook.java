@@ -55,6 +55,11 @@ public class NoteBook {
     }
 
     public List<Note> searchNotes(String s) {
-        return null;
+        List<Note> result = new ArrayList<>();
+        for (Folder folder : folders) {
+            result.addAll(folder.searchNotes(s));
+        }
+        return result;
     }
+
 }
