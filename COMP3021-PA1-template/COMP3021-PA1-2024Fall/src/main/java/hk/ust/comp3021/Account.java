@@ -42,7 +42,9 @@ public abstract class Account {
         public List<Account> getRegisteredAccounts() {
             return registeredAccounts;
         }
-
+        public List<Rider> getRiders(){
+            return registeredRiders;
+        }
         public Account getAccountById(Long id) {
             return registeredAccounts.get(Math.toIntExact(id));
         }

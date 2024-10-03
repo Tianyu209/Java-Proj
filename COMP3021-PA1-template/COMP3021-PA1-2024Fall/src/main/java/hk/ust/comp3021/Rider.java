@@ -16,6 +16,11 @@ public class Rider extends Account {
         this.userRating = userRating;
         this.monthTaskCount = monthTaskCount;
     }
+
+    public Integer getStatus() {
+        return status;
+    }
+
     public void register(){
     Account.accountManager.addRider(this);
     }

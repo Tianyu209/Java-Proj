@@ -19,7 +19,7 @@ public class Customer extends Account{
         Account.accountManager.addCustomer(this);
 
     }
-    Account getCustomerById(Long l){
+    public Account getCustomerById(Long l){
         return Account.getAccountById(l);
     }
     /// Do not modify this method.

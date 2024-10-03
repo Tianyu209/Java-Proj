@@ -19,10 +19,10 @@ public class Restaurant extends Account{
     public void register(){
         Account.accountManager.addRestaurant(this);
     }
-    void addDish(Dish d){
+    public void addDish(Dish d){
         dishes.add(d);
     }
-    Restaurant getRestaurantById(Long l){
+    public Restaurant getRestaurantById(Long l){
         return Account.accountManager.getRestaurantById(l);
     }
     /// Do not modify this method.

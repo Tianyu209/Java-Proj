@@ -1,6 +1,8 @@
 package hk.ust.comp3021;
 
-public class RestaurantToCustomerDistanceRank {
-    void compare(Order o1,Order o2){};
+public class RestaurantToCustomerDistanceRank implements PendingOrderRank{
+    public int compare(Order o1,Order o2){
+        return o1.getEstimatedTime()>o2.getEstimatedTime()?1:2;
+    };
 
 }

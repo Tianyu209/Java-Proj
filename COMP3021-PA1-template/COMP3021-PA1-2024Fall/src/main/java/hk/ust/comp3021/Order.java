@@ -23,8 +23,8 @@ public class Order {
         this.rider = rider;
 
     }
-    void calculateEstimatedTime(){
-
+    public Double calculateEstimatedTime(){
+    return 0.0;
     }
 
     public Customer getCustomer() {
