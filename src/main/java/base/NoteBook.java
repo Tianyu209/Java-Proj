@@ -2,6 +2,8 @@ package base;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class NoteBook {
     private ArrayList<Folder> folders;
@@ -34,11 +36,25 @@ public class NoteBook {
        TextNote note = new TextNote(title);
        return insertNote(folderName,note);
     }
+    public boolean createTextNote(String folderName,String title, String content){
+        TextNote note = new TextNote(title,content);
+        return insertNote(folderName,note);
+    }
     public boolean createImageNote(String folderName,String title){
     ImageNote note = new ImageNote(title);
     return insertNote(folderName,note);
     }
     public ArrayList<Folder> getFolders(){
         return this.folders;
+    }
+    public void sortFolders(){
+        for ( Folder folder : folders){
+            folder.sortNotes();
+        }
+        Collections.sort(folders);
+    }
+
+    public List<Note> searchNotes(String s) {
+        return null;
     }
 }

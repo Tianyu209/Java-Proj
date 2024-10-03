@@ -1,8 +1,11 @@
 package base;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-public class Folder {
+public class Folder implements Comparable<Folder>{
     private ArrayList<Note> notes;
     private String name;
     public Folder(String name){
@@ -32,6 +35,49 @@ public class Folder {
     public boolean equals(Folder f){
         return (f.name.equals(this.name));
     }
+    public void sortNotes(){
+        Collections.sort(notes);
+    }
+    @Override
+    public int compareTo(Folder f){
+        return this.name.compareTo(f.name);
+    }
+    public List<Note> searchNotes(String keywords){
+        String[] parts = keywords.split(" ");
+        List<Note> result = new ArrayList<>();
 
+        for (Note note : notes) {
+            boolean matches = true;
+            boolean orCondition = false;
+            for (String part : parts) {
+                if (part.equalsIgnoreCase("OR")) {
+                    orCondition = true;
+                    continue;
+                }
+                boolean containsKeyword = false;
+                if (note instanceof ImageNote) {
+                    containsKeyword = note.getTitle().toLowerCase().contains(part.toLowerCase());
+                } else if (note instanceof TextNote textNote) {
+                    containsKeyword = textNote.getTitle().toLowerCase().contains(part.toLowerCase()) ||
+                            textNote.content.toLowerCase().contains(part.toLowerCase());
+                }
+                if (orCondition) {
+                    orCondition = false;
+                    if (containsKeyword) {
+                        matches = true;
+                    }
+                } else {
+                    if (!containsKeyword) {
+                        matches = false;
+                        break;
+                    }
+                }
+            }
+            if (matches) {
+                result.add(note);
+            }
+        }
+        return result;
+    }
 
 }

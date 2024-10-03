@@ -2,7 +2,15 @@ package base;
 import java.util.Date;
 import java.util.Objects;
 
-public class Note {
+public class Note implements Comparable<Note>{
+    private Date date;
+    private String title;
+
+    public Note (String title){
+        this.title = title;
+        this.date = new Date();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -16,13 +24,18 @@ public class Note {
         return Objects.hashCode(title);
     }
 
-    private Date date;
-    private String title;
-    public Note (String title){
-        this.title = title;
-        this.date = new Date();
-    }
+
+
     public String getTitle(){
         return this.title;
+    }
+
+    @Override
+    public int compareTo(Note o) {
+        return o.date.compareTo(this.date);
+    }
+    @Override
+    public String toString(){
+        return date.toString() + "\t" + title;
     }
 }
