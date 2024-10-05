@@ -1,6 +1,7 @@
 package base;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -52,15 +53,12 @@ public class Folder implements Comparable<Folder> {
     public List<Note> searchNotes(String keywords) {
         String[] parts = keywords.split(" ");
         List<Note> result = new ArrayList<>();
-
         for (Note note : notes) {
             boolean state = true;
             boolean matches = false;
             boolean orCondition = false;
 
-            for (int i = 0; i < parts.length; i++) {
-                String part = parts[i];
-
+            for (String part : parts) {
                 if (part.equalsIgnoreCase("or")) {
                     orCondition = true;
                     continue;
