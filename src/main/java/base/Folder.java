@@ -4,74 +4,86 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Folder implements Comparable<Folder>{
+public class Folder implements Comparable<Folder> {
     private ArrayList<Note> notes;
     private String name;
-    public Folder(String name){
-        this.name = name; this.notes = new ArrayList<>();
+
+    public Folder(String name) {
+        this.name = name;
+        this.notes = new ArrayList<>();
     }
-    public void addNote(Note n){
+
+    public void addNote(Note n) {
         notes.add(n);
     }
-    public String getName(){
+
+    public String getName() {
         return this.name;
     }
-    public ArrayList<Note> getNotes(){
+
+    public ArrayList<Note> getNotes() {
         return this.notes;
     }
 
     @Override
     public String toString() {
-        int nText =0;
-        int nImage =0;
-        for(Note n:notes){
+        int nText = 0;
+        int nImage = 0;
+        for (Note n : notes) {
             if (n instanceof ImageNote) nImage++;
-            if(n instanceof  TextNote)nText++;
+            if (n instanceof TextNote) nText++;
         }
-        return name +':' +nText +':' + nImage;
+        return name + ':' + nText + ':' + nImage;
     }
 
-    public boolean equals(Folder f){
+    public boolean equals(Folder f) {
         return (f.name.equals(this.name));
     }
-    public void sortNotes(){
+
+    public void sortNotes() {
         Collections.sort(notes);
     }
+
     @Override
-    public int compareTo(Folder f){
+    public int compareTo(Folder f) {
         return this.name.compareTo(f.name);
     }
-    public List<Note> searchNotes(String keywords){
+
+    public List<Note> searchNotes(String keywords) {
         String[] parts = keywords.split(" ");
         List<Note> result = new ArrayList<>();
 
         for (Note note : notes) {
-            boolean matches = true;
+            boolean state = true;
+            boolean matches = false;
             boolean orCondition = false;
-            for (String part : parts) {
-                if (part.equalsIgnoreCase("OR")) {
+
+            for (int i = 0; i < parts.length; i++) {
+                String part = parts[i];
+
+                if (part.equalsIgnoreCase("or")) {
                     orCondition = true;
                     continue;
                 }
-                boolean containsKeyword = false;
+                boolean partMatches;
                 if (note instanceof ImageNote) {
-                    containsKeyword = note.getTitle().toLowerCase().contains(part.toLowerCase());
-                } else if (note instanceof TextNote textNote) {
-                    containsKeyword = textNote.getTitle().toLowerCase().contains(part.toLowerCase()) ||
-                            textNote.content.toLowerCase().contains(part.toLowerCase());
+                    partMatches = note.getTitle().toLowerCase().contains(part.toLowerCase());
+                } else {
+                    partMatches = note.getTitle().toLowerCase().contains(part.toLowerCase()) ||
+                            ((TextNote) note).content.toLowerCase().contains(part.toLowerCase());
                 }
                 if (orCondition) {
+                    state = state || partMatches;
                     orCondition = false;
-                    if (containsKeyword) {
-                        matches = true;
-                    }
                 } else {
-                    if (!containsKeyword) {
-                        matches = false;
-                        break;
-                    }
+                    state = state && partMatches;
                 }
             }
+
+            if (state) {
+                matches = true;
+            }
+
             if (matches) {
                 result.add(note);
             }
@@ -80,3 +92,4 @@ public class Folder implements Comparable<Folder>{
     }
 
 }
+
