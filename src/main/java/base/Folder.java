@@ -51,43 +51,56 @@ public class Folder implements Comparable<Folder> {
     }
 
     public List<Note> searchNotes(String keywords) {
-        String[] parts = keywords.split(" ");
         List<Note> result = new ArrayList<>();
-        for (Note note : notes) {
-            boolean state = true;
-            boolean matches = false;
-            boolean orCondition = false;
+        ArrayList<ArrayList<String>> patterns = new ArrayList<>();
 
-            for (String part : parts) {
-                if (part.equalsIgnoreCase("or")) {
-                    orCondition = true;
-                    continue;
+        String[] parts = keywords.split(" ");
+        int i = 0;
+        while (i < parts.length) {
+            if (parts[i].equalsIgnoreCase("or")) {
+                i++;
+                if (i < parts.length) {
+                    patterns.get(patterns.size() - 1).add(parts[i].toLowerCase());
                 }
-                boolean partMatches;
-                if (note instanceof ImageNote) {
-                    partMatches = note.getTitle().toLowerCase().contains(part.toLowerCase());
-                } else {
-                    partMatches = note.getTitle().toLowerCase().contains(part.toLowerCase()) ||
-                            ((TextNote) note).content.toLowerCase().contains(part.toLowerCase());
-                }
-                if (orCondition) {
-                    state = state || partMatches;
-                    orCondition = false;
-                } else {
-                    state = state && partMatches;
-                }
+            } else {
+                ArrayList<String> newArr = new ArrayList<>();
+                newArr.add(parts[i].toLowerCase());
+                patterns.add(newArr);
+            }
+            i++;
+        }
+
+        for (Note note : notes) {
+            String toBeSearched = note.getTitle().toLowerCase();
+
+            if (note instanceof TextNote) {
+                toBeSearched += ((TextNote) note).content.toLowerCase();
             }
 
-            if (state) {
-                matches = true;
+            boolean matches = true;
+
+            for (ArrayList<String> pattern : patterns) {
+                boolean foundPattern = false;
+                for (String keyword : pattern) {
+                    if (toBeSearched.contains(keyword)) {
+                        foundPattern = true;
+                        break;
+                    }
+                }
+                if (!foundPattern) {
+                    matches = false;
+                    break;
+                }
             }
 
             if (matches) {
                 result.add(note);
             }
         }
+
         return result;
     }
+
 
 }
 
