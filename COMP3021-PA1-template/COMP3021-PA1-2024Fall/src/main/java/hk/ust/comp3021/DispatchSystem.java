@@ -7,8 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-import static hk.ust.comp3021.Constants.PENDING_ORDER;
-import static hk.ust.comp3021.Constants.RIDER_ONLINE_ORDER;
+import static hk.ust.comp3021.Constants.*;
 
 public class DispatchSystem {
 
@@ -223,17 +222,30 @@ public class DispatchSystem {
     /// Hint: The best rider should have the highest rank ranked in order of the distance between the rider and the restaurant (Top priority), the rider's user rating (Second priority), and the rider's month task count (Least priority).
     /// Use the comparators you defined before, you will also use the Task class here and the availableRiders here should be the currently available riders.
     public Task matchTheBestTask(Order order, List<Rider> availableRiders) {
-
-        for (Rider r : availableRiders){
-            r.location.distanceTo(order.getRestaurant().location);
-        }
-        return null;
+        availableRiders.sort((o1, o2) -> {
+            int Distance = new RiderToRestaurantRank().compare(new Task(order, o1), new Task(order, o2));
+            if (Distance != 0) return Distance;
+            int Rating = Double.compare(o1.userRating, o2.userRating);
+            if (Rating != 0) return Rating;
+            return new RiderMonthTaskCountRank().compare(new Task(order, o1), new Task(order, o2));
+        });
+        return new Task(order, availableRiders.get(0));
     }
 
     /// Task 9: Implement the dispatchFirstRound() method to dispatch the first round of orders.
     /// Hint: The strategy is that we assign the best rider to the orders ranked one by one until the orders or riders list is empty.
     /// Do not forget to 1. remove the dispatched rider every iteration, 2. change the status of the order and the rider after the order is dispatched, and 3. calculate the estimated time for the order.
     public void dispatchFirstRound() {
+        for (Order o : this.availableOrders){
+            Task t = matchTheBestTask(o,this.getAvailableRiders());
+            Rider r = t.rider;
+            o.rider = r;
+            o.estimatedTime = o.calculateEstimatedTime();
+            o.status = DISPATCHED_ORDER;
+            r.status = RIDER_DELIVERING;
+            this.getAvailableRiders().remove(r);
+        }
+
     }
 
     /// Do not modify the method. You should use the method to output orders for us to check the correctness of your implementation.
