@@ -8,8 +8,8 @@ public class Customer extends Account{
     public Customer(Long id,String accountType, String name, String contactNumber, Location location, Integer customerType, String gender, String email){
         this.id = id;
         this.accountType = accountType;
-        this.contactNumber = contactNumber;
         this.name = name;
+        this.contactNumber = contactNumber;
         this.location = location;
         this.customerType = customerType;
         this.gender = gender;

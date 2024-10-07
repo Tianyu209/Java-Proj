@@ -23,9 +23,12 @@ public class Order {
         this.rider = rider;
 
     }
-    public Double calculateEstimatedTime(){
-    return 0.0;
+    public Double calculateEstimatedTime() {
+        double v = Constants.DELIVERY_SPEED;
+        double s = restaurant.location.distanceTo(customer.location);
+        return s/v;
     }
+
 
     public Customer getCustomer() {
         return customer;

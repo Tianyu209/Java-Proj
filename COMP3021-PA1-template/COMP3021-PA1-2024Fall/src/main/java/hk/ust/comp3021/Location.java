@@ -18,5 +18,8 @@ public class Location {
     Double distanceTo(Location l){
         return sqrt(pow(this.altitude-l.altitude,2) + pow(this.latitude-l.latitude,2));
     }
+    public String toString() {
+        return "Location(latitude=" + latitude + ", altitude=" + altitude + ")";
+    }
 
 }

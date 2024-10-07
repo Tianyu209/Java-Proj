@@ -7,14 +7,14 @@ public class Rider extends Account {
     Integer monthTaskCount;
     public Rider(Long id,String accountType, String name, String contactNumber, Location location, String gender,Integer status,Double userRating,Integer monthTaskCount){
         this.id = id;
-        this.accountType = accountType;
-        this.contactNumber = contactNumber;
         this.name = name;
+        this.contactNumber = contactNumber;
         this.location = location;
         this.gender = gender;
         this.status = status;
         this.userRating = userRating;
         this.monthTaskCount = monthTaskCount;
+        this.accountType = "RIDER";
     }
 
     public Integer getStatus() {

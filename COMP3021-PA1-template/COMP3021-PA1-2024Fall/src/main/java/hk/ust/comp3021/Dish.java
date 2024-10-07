@@ -34,4 +34,8 @@ public class Dish{
     public BigDecimal getPrice() {
         return price;
     }
+
+    public String toString() {
+        return "Dish(id=" + id + ", name=" + name + ", desc=" + desc + ", price=" + price + ", restaurantId=" + restaurantId + ")";
+    }
 }

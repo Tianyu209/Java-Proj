@@ -51,15 +51,20 @@ public class DispatchSystem {
     }
 
     public Dish getDishById(Long id) {
-        return availableDishes.get(Math.toIntExact(id));
+        for (Dish d : availableDishes){
+            if (d.getId().equals(id)) return d;
+        }
+        return null;
     }
 
     public Boolean checkDishesInRestaurant(Restaurant restaurant, Long[] dishIds) {
-        int valid =0;
-        for (Dish d : restaurant.dishes){
-            if (d.getId().equals(dishIds[valid])) valid++;
+        if (restaurant == null) return false;
+        for (Long dishId : dishIds) {
+            if (!restaurant.hasDish(dishId)) {
+                return false;
+            }
         }
-        return valid == dishIds.length;
+        return true;
     }
 
     /// Task 2: Implement the parseAccounts() method to parse the accounts from the file.
@@ -91,10 +96,21 @@ public class DispatchSystem {
                     arr.add(Double.parseDouble(part));
                 }
                 Location location = new Location(arr);
+
+
                 switch (accountType) {
-                    case "CUSTOMER" -> Account.accountManager.addCustomer(new Customer(id,fields[1],fields[2],fields[3],location,Integer.parseInt(fields[5]),fields[6],fields[7]));
-                    case "RIDER" -> Account.accountManager.addRider(new Rider(id,fields[1],fields[2],fields[3],location,fields[5],Integer.parseInt(fields[6]),Double.parseDouble(fields[7]),Integer.parseInt(fields[8])));
-                    case "RESTAURANT" -> Account.accountManager.addRestaurant(new Restaurant(id,fields[1],fields[2],fields[3],location,fields[5],fields[6]));
+                    case "CUSTOMER" -> {
+                        Customer customer = new Customer(id, fields[1], fields[2], fields[3], location, Integer.parseInt(fields[5]), fields[6], fields[7]);
+                        customer.register();
+                    }
+                    case "RIDER" -> {
+                        Rider rider = new Rider(id, fields[1], fields[2], fields[3], location, fields[5], Integer.parseInt(fields[6]), Double.parseDouble(fields[7]), Integer.parseInt(fields[8]));
+                        rider.register();
+                    }
+                    case "RESTAURANT" -> {
+                        Restaurant restaurant = new Restaurant(id, fields[1], fields[2], fields[3], location, fields[5], fields[6]);
+                        restaurant.register();
+                    }
                 }
 
 
@@ -122,10 +138,8 @@ public class DispatchSystem {
                 Long id = Long.parseLong(fields[0]);
                 BigDecimal price = new BigDecimal(fields[3]);
                 Long Rid = Long.parseLong(fields[4]);
-                // create the dish and add to the account
                 Dish d = new Dish(id,fields[1],fields[2],price,Rid);
                 availableDishes.add(d);
-                //add the dish to the restaurant
                 Account.accountManager.getRestaurantById(Rid).addDish(d);
                 // TODO.
 
@@ -153,30 +167,27 @@ public class DispatchSystem {
                 Long Rid = Long.parseLong(fields[2]);
                 Long Cid = Long.parseLong(fields[3]);
                 Long Ct = Long.parseLong(fields[4]);
-                Boolean ispayed = Boolean.parseBoolean(fields[5]);
-
+                Boolean isPaid = (Integer.parseInt(fields[5])==1);
                 fields[6] = fields[6].substring(1, fields[6].length() - 1);
                 String[] parts = fields[6].split(" ");
                 Long [] arr = new Long[parts.length];
-                int i=0;
-                for (String part : parts) {
-                    arr[i] = Long.parseLong(part);
-                    i++;
+                for (int i = 0; i < parts.length; i++) {
+                    arr[i] = Long.parseLong(parts[i]);
+                }
+                if (!checkDishesInRestaurant(Account.accountManager.getRestaurantById(Rid), arr)) {
+                    continue;
                 }
                 List<Dish> dishes = new ArrayList<>();
                 for(Long l:arr){
                     dishes.add(getDishById(l));
                 }
                 checkDishesInRestaurant(Account.accountManager.getRestaurantById(Rid),arr );
-                Rider rider;
-                if(fields[7].equals("NA"))  rider = null;
-                else rider = Account.accountManager.getRiderById(Long.parseLong(fields[7]));
-                // TODO.
-                if (!checkDishesInRestaurant(Account.accountManager.getRestaurantById(Rid), arr)) {
-                    continue;
-                }
+                Rider rider = fields[7].equals("NA") ? null : Account.accountManager.getRiderById(Long.parseLong(fields[7]));
 
-                Order o = new Order(id,status,Account.accountManager.getRestaurantById(Rid),Account.accountManager.getCustomerById(Cid),Ct,ispayed,dishes,rider);
+                // TODO.
+
+
+                Order o = new Order(id,status,Account.accountManager.getRestaurantById(Rid),Account.accountManager.getCustomerById(Cid),Ct, isPaid,dishes,rider);
                 availableOrders.add(o);
                 
 
@@ -222,40 +233,61 @@ public class DispatchSystem {
     /// Hint: The best rider should have the highest rank ranked in order of the distance between the rider and the restaurant (Top priority), the rider's user rating (Second priority), and the rider's month task count (Least priority).
     /// Use the comparators you defined before, you will also use the Task class here and the availableRiders here should be the currently available riders.
     public Task matchTheBestTask(Order order, List<Rider> availableRiders) {
-        availableRiders.sort((o1, o2) -> {
-            int Distance = new RiderToRestaurantRank().compare(new Task(order, o1), new Task(order, o2));
-            if (Distance != 0) return Distance;
-            int Rating = Double.compare(o1.userRating, o2.userRating);
-            if (Rating != 0) return Rating;
-            return new RiderMonthTaskCountRank().compare(new Task(order, o1), new Task(order, o2));
+        List<Task> tasks = new ArrayList<>();
+
+        for (Rider rider : availableRiders) {
+//            System.out.println("Processing rider: " + rider);
+            Task task = new Task(order, rider);
+            tasks.add(task);
+//            System.out.println("Added task for rider: " + rider.getId());
+//            System.out.println("Current tasks list: " + tasks);
+        }
+        if (tasks.isEmpty()) {
+//            System.out.println("No tasks were created.");
+            return null;
+        }
+
+        tasks.sort((task1, task2) -> {
+            int distanceComparison = new RiderToRestaurantRank().compare(task1, task2);
+            if (distanceComparison != 0) {
+                return distanceComparison;
+            }
+            int ratingComparison = Double.compare(task2.rider.userRating, task1.rider.userRating);
+            if (ratingComparison != 0) {
+                return ratingComparison;
+            }
+            return new RiderMonthTaskCountRank().compare(task1, task2);
         });
-        return new Task(order, availableRiders.get(0));
+
+        return tasks.get(0);
     }
 
     /// Task 9: Implement the dispatchFirstRound() method to dispatch the first round of orders.
     /// Hint: The strategy is that we assign the best rider to the orders ranked one by one until the orders or riders list is empty.
     /// Do not forget to 1. remove the dispatched rider every iteration, 2. change the status of the order and the rider after the order is dispatched, and 3. calculate the estimated time for the order.
     public void dispatchFirstRound() {
-        for (Order o : this.availableOrders){
-            Task t = matchTheBestTask(o,this.getAvailableRiders());
+        List<Rider> availableRiders = this.getAvailableRiders();
+        List<Order> availableOrders = this.getAvailablePendingOrders();
+        List<Order> rankedOrders = getRankedPendingOrders(availableOrders);
+
+        for (Order o : rankedOrders) {
+            Task t = matchTheBestTask(o, availableRiders);
+            if (t == null) {
+                continue;
+            }
             Rider r = t.rider;
             o.rider = r;
             o.estimatedTime = o.calculateEstimatedTime();
             o.status = DISPATCHED_ORDER;
             r.status = RIDER_DELIVERING;
-            this.getAvailableRiders().remove(r);
+            availableRiders.remove(r);
+            dispatchedOrders.add(o);
         }
-
     }
 
     /// Do not modify the method. You should use the method to output orders for us to check the correctness of your implementation.
     public void writeOrders(String fileName, List<Order> orders) throws IOException {
-        List<Order> orderedOrders = orders.stream().sorted(new Comparator<Order>() {
-            @Override
-            public int compare(Order o1, Order o2) {
-                return o1.getId().compareTo(o2.getId());
-            }
-        }).toList();
+        List<Order> orderedOrders = orders.stream().sorted(Comparator.comparing(Order::getId)).toList();
 
         // Write the dispatched orders to the file.
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName))) {
@@ -269,12 +301,7 @@ public class DispatchSystem {
 
     /// Do not modify the method.
     public void writeAccounts(String fileName, List<Account> accounts) throws IOException {
-        List<Account> orderedAccounts = accounts.stream().sorted(new Comparator<Account>() {
-            @Override
-            public int compare(Account o1, Account o2) {
-                return o1.getId().compareTo(o2.getId());
-            }
-        }).toList();
+        List<Account> orderedAccounts = accounts.stream().sorted(Comparator.comparing(Account::getId)).toList();
 
         // Write the dispatched orders to the file.
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName))) {
@@ -286,12 +313,7 @@ public class DispatchSystem {
 
     /// Do not modify the method.
     public void writeDishes(String fileName, List<Dish> dishes) throws IOException {
-        List<Dish> orderedDishes = dishes.stream().sorted(new Comparator<Dish>() {
-            @Override
-            public int compare(Dish o1, Dish o2) {
-                return o1.getId().compareTo(o2.getId());
-            }
-        }).toList();
+        List<Dish> orderedDishes = dishes.stream().sorted(Comparator.comparing(Dish::getId)).toList();
 
         // Write the dispatched orders to the file.
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName))) {
@@ -305,7 +327,14 @@ public class DispatchSystem {
     /// Task 10: Implement the getTimeoutDispatchedOrders() method to get the timeout dispatched orders.
     /// Hint: Do not forget to take the current time stamp into consideration.
     public List<Order> getTimeoutDispatchedOrders() {
-        return null;
+        List<Order> timeoutOrders = new ArrayList<>();
+        for (Order order : dispatchedOrders) {
+            double timeElapsed = currentTimestamp - order.getCreateTime();
+            if (timeElapsed > DELIVERY_TIME_LIMIT) {
+                timeoutOrders.add(order);
+            }
+        }
+        return timeoutOrders;
     }
 
     /// Do not modify the method.
@@ -331,11 +360,12 @@ public class DispatchSystem {
 
     /// Finish the main method to test your implementation.a
     public static void main(String[] args) {
-        DispatchSystem system = new DispatchSystem();
+        DispatchSystem system = DispatchSystem.getInstance();
+
         try {
-            system.parseAccounts("Accounts.txt");
-            system.parseDishes("Dishes.txt");
-            system.parseOrders("Orders.txt");
+            system.parseAccounts("SampleInputAccounts.txt");
+            system.parseDishes("SampleInputDishes.txt");
+            system.parseOrders("SampleInputOrders.txt");
             system.writeOrders("availableOrders.txt", system.availableOrders);
 
             system.dispatchFirstRound();

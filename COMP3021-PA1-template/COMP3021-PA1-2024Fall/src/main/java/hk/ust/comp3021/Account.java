@@ -46,7 +46,12 @@ public abstract class Account {
             return registeredRiders;
         }
         public Account getAccountById(Long id) {
-            return registeredAccounts.get(Math.toIntExact(id));
+            for (Account account : registeredAccounts) {
+                if (account.getId().equals(id)) {
+                    return account;
+                }
+            }
+            return null;
         }
 
         /// Hint: Do not forget to add the account to the registeredAccounts list.
@@ -56,7 +61,10 @@ public abstract class Account {
         }
 
         public Customer getCustomerById(Long id) {
-            return registeredCustomers.get(id.intValue());
+            for (Customer c : registeredCustomers){
+                if(c.getId().equals(id)) return c;
+            }
+            return null;
         }
 
         /// Hint: Do not forget to add the account to the registeredAccounts list.
@@ -66,7 +74,12 @@ public abstract class Account {
         }
 
         public Restaurant getRestaurantById(Long id) {
-            return registeredRestaurants.get(id.intValue());
+            for (Restaurant r : registeredRestaurants){
+                if(r.getId().equals(id)) {
+                    return r;
+                }
+            }
+            return null;
         }
 
         /// Hint: Do not forget to add the account to the registeredAccounts list.
@@ -76,7 +89,10 @@ public abstract class Account {
         }
 
         public Rider getRiderById(Long id) {
-            return registeredRiders.get(id.intValue());
+            for(Rider r : registeredRiders){
+                if (r.getId().equals(id)) return r;
+            }
+            return null;
         }
 
     }

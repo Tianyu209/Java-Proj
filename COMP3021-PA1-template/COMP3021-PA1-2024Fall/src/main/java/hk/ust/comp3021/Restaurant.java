@@ -1,20 +1,21 @@
 package hk.ust.comp3021;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Restaurant extends Account{
     String district;
     String street;
-    List<Dish> dishes;
-    public Restaurant(Long id,String accountType, String name, String contactNumber, Location location, String district, String street){
+    List<Dish> dishes = new ArrayList<>();
+    public Restaurant(Long id, String accountType, String name, String contactNumber, Location location, String district, String street) {
         this.id = id;
-        this.accountType = accountType;
-        this.contactNumber = contactNumber;
         this.name = name;
+        this.contactNumber = contactNumber;
         this.location = location;
-        this.street = street;
         this.district = district;
+        this.street = street;
+        this.accountType = "RESTAURANT";
     }
     public void register(){
         Account.accountManager.addRestaurant(this);
@@ -43,4 +44,10 @@ public class Restaurant extends Account{
                 '}';
     }
 
+    public boolean hasDish(Long dishId) {
+        for(Dish d : dishes){
+            if (d.getId().equals(dishId)) return true;
+        }
+        return false;
+    }
 }
