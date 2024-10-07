@@ -25,8 +25,9 @@ public class Order {
     }
     public Double calculateEstimatedTime() {
         double v = Constants.DELIVERY_SPEED;
-        double s = restaurant.location.distanceTo(customer.location);
-        return s/v;
+        double s = customer.location.distanceTo(restaurant.location);
+        double d = restaurant.location.distanceTo(rider.location);
+        return s/v +d/v;
     }
 
 
