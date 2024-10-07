@@ -1,7 +1,7 @@
 package hk.ust.comp3021;
 
-public class RiderMonthTaskCountRank {
+public class RiderMonthTaskCountRank implements TaskRank{
     public int compare(Task t1,Task t2){
-        return 0;
+        return t1.rider.monthTaskCount.compareTo(t2.rider.monthTaskCount);
     };
 }
