@@ -31,11 +31,14 @@ public class DispatchSystem {
     /// Hint: Check if the dispatchSystem is null or not null, skip it when not null. Initialize the fields.
 
     private DispatchSystem() {
-        if(dispatchSystem == null) return;
+        if (dispatchSystem != null) {
+            throw new IllegalStateException("An instance of DispatchSystem already exists.");
+        }
         availableDishes = new ArrayList<>();
         availableOrders = new ArrayList<>();
         dispatchedOrders = new ArrayList<>();
     }
+
 
     /// Task 1: Implement the getInstance() method for the singleton pattern.
     /// Hint: Check if the dispatchSystem is null or not null and create a new instance here.
@@ -94,6 +97,8 @@ public class DispatchSystem {
                     case "RIDER" -> Account.accountManager.addRider(new Rider(id,fields[1],fields[2],fields[3],location,fields[5],Integer.parseInt(fields[6]),Double.parseDouble(fields[7]),Integer.parseInt(fields[8])));
                     case "RESTAURANT" -> Account.accountManager.addRestaurant(new Restaurant(id,fields[1],fields[2],fields[3],location,fields[5],fields[6]));
                 }
+
+
                 // TODO.
 
             }
@@ -168,6 +173,10 @@ public class DispatchSystem {
                 if(fields[7].equals("NA"))  rider = null;
                 else rider = Account.accountManager.getRiderById(Long.parseLong(fields[7]));
                 // TODO.
+                if (!checkDishesInRestaurant(Account.accountManager.getRestaurantById(Rid), arr)) {
+                    continue;
+                }
+
                 Order o = new Order(id,status,Account.accountManager.getRestaurantById(Rid),Account.accountManager.getCustomerById(Cid),Ct,ispayed,dishes,rider);
                 availableOrders.add(o);
                 
