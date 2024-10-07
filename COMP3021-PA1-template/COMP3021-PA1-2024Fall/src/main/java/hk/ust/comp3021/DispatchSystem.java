@@ -329,7 +329,7 @@ public class DispatchSystem {
     public List<Order> getTimeoutDispatchedOrders() {
         List<Order> timeoutOrders = new ArrayList<>();
         for (Order order : dispatchedOrders) {
-            double timeElapsed = currentTimestamp - order.getCreateTime();
+            double timeElapsed = currentTimestamp - order.getCreateTime() + order.estimatedTime;
             if (timeElapsed > DELIVERY_TIME_LIMIT) {
                 timeoutOrders.add(order);
             }
