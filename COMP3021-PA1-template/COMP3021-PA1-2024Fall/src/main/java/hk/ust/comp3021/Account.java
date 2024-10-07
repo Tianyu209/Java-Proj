@@ -25,11 +25,11 @@ public abstract class Account {
 
         private List<Account> registeredAccounts;
 
-        private List<Customer> registeredCustomers;
+        private static List<Customer> registeredCustomers;
 
-        private List<Restaurant> registeredRestaurants;
+        private static List<Restaurant> registeredRestaurants;
 
-        private List<Rider> registeredRiders;
+        private static List<Rider> registeredRiders;
 
         public AccountManager() {
             registeredAccounts = new ArrayList<>();
@@ -60,7 +60,7 @@ public abstract class Account {
             registeredAccounts.add(customer);
         }
 
-        public Customer getCustomerById(Long id) {
+        static public Customer getCustomerById(Long id) {
             for (Customer c : registeredCustomers){
                 if(c.getId().equals(id)) return c;
             }
@@ -73,7 +73,7 @@ public abstract class Account {
             registeredAccounts.add(restaurant);
         }
 
-        public Restaurant getRestaurantById(Long id) {
+        static public Restaurant getRestaurantById(Long id) {
             for (Restaurant r : registeredRestaurants){
                 if(r.getId().equals(id)) {
                     return r;
@@ -88,7 +88,7 @@ public abstract class Account {
             registeredAccounts.add(rider);
         }
 
-        public Rider getRiderById(Long id) {
+        static public Rider getRiderById(Long id) {
             for(Rider r : registeredRiders){
                 if (r.getId().equals(id)) return r;
             }
