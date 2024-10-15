@@ -9,7 +9,7 @@ public class Note implements Comparable<Note>{
 
     public Note (String title){
         this.title = title;
-        this.date = new Date(counter);
+        this.date = new Date(System.currentTimeMillis());
         counter++;
     }
 
@@ -34,7 +34,9 @@ public class Note implements Comparable<Note>{
 
     @Override
     public int compareTo(Note o) {
-        return o.date.compareTo(this.date);
+        if (this instanceof TextNote && o instanceof ImageNote) return -1;
+        if (this instanceof ImageNote && o instanceof TextNote) return 1;
+        return this.title.compareTo(o.title);
     }
     @Override
     public String toString(){

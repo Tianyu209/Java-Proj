@@ -32,6 +32,14 @@ public class NoteBook {
         folders.add(newFolder);
         return true;
     }
+    public boolean createNote(String folderName, String title){
+
+        return insertNote(folderName, new ImageNote(title));
+    }
+    public boolean createNote(String folderName, String title, String content){
+
+        return insertNote(folderName, new TextNote(title, content));
+    }
     public boolean createTextNote(String folderName,String title){
        TextNote note = new TextNote(title);
        return insertNote(folderName,note);

@@ -7,4 +7,10 @@ public class ImageNote extends Note{
     public ImageNote(String title) {
         super(title);
     }
+
+    public String toString(){
+        return "ImageNote:" + super.toString();
+
+    }
 }
+
