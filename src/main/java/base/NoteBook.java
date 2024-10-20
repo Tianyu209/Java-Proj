@@ -1,14 +1,49 @@
 package base;
 
 import java.awt.*;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class NoteBook {
+public class NoteBook implements Serializable{
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private ArrayList<Folder> folders;
     public NoteBook(){
         folders = new ArrayList<>();
+    }
+    public NoteBook(String file) {
+        try (FileInputStream fis = new FileInputStream(file);
+             ObjectInputStream in = new ObjectInputStream(fis)) {
+
+            NoteBook n = (NoteBook) in.readObject();
+            this.folders = n.getFolders(); // Check deserialized value
+            in.close();
+            if (this.folders == null) {
+                this.folders = new ArrayList<>(); // Always ensure folders is initialized
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            this.folders = new ArrayList<>(); // Fallback in case of failure
+        }
+    }
+
+    public boolean save(String file){
+        FileOutputStream fos;
+        ObjectOutputStream out;
+        try{
+            fos = new FileOutputStream(file);
+            out = new ObjectOutputStream(fos);
+            out.writeObject(this);
+            out.close();
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
     public boolean insertNote(String folderName,Note note){
 

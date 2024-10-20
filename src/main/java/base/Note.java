@@ -12,7 +12,11 @@ public class Note implements Comparable<Note>{
         this.date = new Date(System.currentTimeMillis());
         counter++;
     }
-
+    public Note(){
+        this.title = "";
+        this.date = new Date(System.currentTimeMillis());
+        counter++;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

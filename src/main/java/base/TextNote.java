@@ -1,7 +1,13 @@
 package base;
 
-public class TextNote extends Note{
+import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+public class TextNote extends Note implements Serializable{
     String content;
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public TextNote(String title){
         super(title);
         content = "";
@@ -10,6 +16,35 @@ public class TextNote extends Note{
         super(title);
         this.content = content;
     }
+    public TextNote() {
+        super();
+        this.content = "";
+    }
+    public TextNote(File f ) throws IOException {
+        super(f.getName());
+        this.content = getTextFromFile(f.getAbsolutePath());
+
+    }
+
+    private String getTextFromFile(String absolutePath) throws IOException {
+        StringBuilder res = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(absolutePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                res.append(line).append(System.lineSeparator());
+            }
+        }
+        return res.toString();
+    }
+    public void exportTextToFile(String pathFolder) throws IOException {
+        String fileName = super.getTitle().replaceAll(" ", "_") ;
+        File file = new File(pathFolder + File.separator + fileName + ".txt");
+        try (BufferedWriter w = new BufferedWriter(new FileWriter(file))) {
+            w.write(this.content);
+        }
+    }
+
+
     public String toString(){
         String res = "TextNote:" + super.toString();
         if (content != null && content.contains(".")){
