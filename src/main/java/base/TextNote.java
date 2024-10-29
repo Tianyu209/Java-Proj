@@ -3,14 +3,28 @@ package base;
 import java.io.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-public class TextNote extends Note implements Serializable{
+public class TextNote extends Note implements Serializable, Iconifiable{
+    @Override
+    public void iconify() {
+        char firstCharacter = content.charAt(0);
+        if ('a' <= firstCharacter && firstCharacter<='z'){
+            content = new IconLowerCase(firstCharacter).base + content.substring(1);
+        }
+        else if ('A' <= firstCharacter && firstCharacter<='Z'){
+            content = new IconUpperCase(firstCharacter).base + content.substring(1);
+        } else if ('0' <= firstCharacter && firstCharacter<='9') {
+            content = new IconDigit(firstCharacter).base + content.substring(1);
+        }
+    }
     String content;
+    Icon icon;
     @Serial
     private static final long serialVersionUID = 1L;
 
     public TextNote(String title){
         super(title);
         content = "";
+        this.icon = null;
     }
     public TextNote(String title, String content){
         super(title);
@@ -20,6 +34,11 @@ public class TextNote extends Note implements Serializable{
         super();
         this.content = "";
     }
+    public TextNote (TextNote note) {
+        super(note);
+        this.content = note.content;
+    }
+
     public TextNote(File f ) throws IOException {
         super(f.getName());
         this.content = getTextFromFile(f.getAbsolutePath());
@@ -44,9 +63,10 @@ public class TextNote extends Note implements Serializable{
         }
     }
 
-
+    @Override
     public String toString(){
         String res = "TextNote:" + super.toString();
+        iconify();
         if (content != null && content.contains(".")){
             res += "\t";
             res += content.substring(0,Math.min(30, content.indexOf(".")));
@@ -55,5 +75,7 @@ public class TextNote extends Note implements Serializable{
         return res;
 
     }
+
+
 
 }

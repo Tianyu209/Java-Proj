@@ -2,16 +2,28 @@ package hk.ust.comp3021.lab;
 
 public class Main {
     public static void main(String[] args) {
-        try {
-            System.out.print(1/0);
-        } catch (ArithmeticException e) {
-            System.out.print("A");
-            throw new RuntimeException(); // This throws RuntimeException
-        } catch (RuntimeException re) {
-            System.out.print("B"); // This will catch the thrown RuntimeException
-        } finally {
-            System.out.print("C"); // Always runs
-        }
-        System.out.print("D"); // Will run if exceptions are caught
+        SubClass<Integer> objA = new SubClass<Integer>();objA.print("1");
+//        SubClass<Object> objB = new SubClass<Integer>();objB.print("1");
+        SubClass<Object> objC = new SubClass<Object>();objC.print("1");
+//        SubClass<Object> objD = new SubClass<String>();objD.print("1");
+        BaseClass objE = new SubClass<String>();objE.print("1");
+        BaseClass objF = new SubClass<Integer>();objF.print("1");
+//        BaseClass objG = new SubClass<Integer>();objG.print(1);
+        BaseClass objH = new SubClass<Object>();objH.print("1");
+//        BaseClass objI = new SubClass<Object>();objI.print(1);
+
+
     }
 }
+class BaseClass {
+    void print(String s) {
+        System.out.println("BaseClass" + s);
+    }
+}
+
+class SubClass<E> extends BaseClass {
+    void print(E e) {
+        System.out.println("SubClass" + e);
+    }
+}
+

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class Folder implements Comparable<Folder>  , Serializable {
+public class Folder implements Comparable<Folder>  , Serializable, Cloneable {
     private ArrayList<Note> notes;
     private String name;
     @Serial
@@ -30,7 +30,22 @@ public class Folder implements Comparable<Folder>  , Serializable {
     public ArrayList<Note> getNotes() {
         return this.notes;
     }
-
+    @Override
+    public Folder clone(){
+        try {
+            Folder clone = (Folder) super.clone();
+            clone.notes = new ArrayList<>();
+            for (Note note: notes) {
+                Note newNote;
+                if (note instanceof TextNote) newNote = new TextNote((TextNote) note);
+                else newNote = new ImageNote((ImageNote) note);
+                clone.notes.add(newNote);
+            }
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
     @Override
     public String toString() {
         int nText = 0;

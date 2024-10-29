@@ -17,6 +17,11 @@ public class Note implements Comparable<Note>{
         this.date = new Date(System.currentTimeMillis());
         counter++;
     }
+    public Note (Note note) {
+        this.title = note.title;
+        this.date = note.date;
+        counter++;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -44,6 +49,7 @@ public class Note implements Comparable<Note>{
     }
     @Override
     public String toString(){
-        return date.toString() + "\t" + title;
+
+        return date.toString() + "\t" + title ;
     }
 }
