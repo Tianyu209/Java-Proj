@@ -1,0 +1,16 @@
+The notes are according to the CS61b order currently
+1. function in java using public static (return type).
+2. all function must be in the class. call method.
+3. define the main function using public static void main(String[] args)
+4. static function/variable create once it declare and store in the stack during the whole runtime.
+5.  Dog smallDog; //variable declaration
+    new Dog(20); // instantiation a Dog obj. just go to garbage
+    smallDog = new Dog(5);  //instantiate and assignment
+    Dog haha = new Dog(200); //declare,instantiate,assignment
+    haha.makeNoise(); //invocation
+    Dog[] dogs = new Dog[2]; //create an array of size 2 and declare the type to be Dog
+    dogs[0]=new Dog(10); //assignment ... just same as single obj
+6.  Static shares among the whole class just like python/c++
+    static can be called through Dog.xxx -> cannot use non-static variable
+    static function need to specify which member to use
+
