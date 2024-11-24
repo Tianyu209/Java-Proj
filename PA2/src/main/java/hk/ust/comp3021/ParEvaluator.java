@@ -12,13 +12,22 @@ public class ParEvaluator<T> implements Evaluator<T> {
 
   public void addDependency(FunNode<T> a, FunNode<T> b, int i) {
     // part 4: parallel function evaluator
-    throw new UnsupportedOperationException();
+    listeners.putIfAbsent(a, new ArrayList<>());
+
+    listeners.get(a).add((result) -> {
+      synchronized (b) {
+        b.setInput(i, result);
+          pool.addTask(b::eval);
+      }
+    });
+//    throw new UnsupportedOperationException();
   }
 
   public void terminate() { pool.terminate(); }
 
   public void start(List<FunNode<T>> nodes) {
     // part 4: parallel function evaluator
-    throw new UnsupportedOperationException();
+    nodes.forEach(node -> pool.addTask(node::eval));
+//    throw new UnsupportedOperationException();
   }
 }

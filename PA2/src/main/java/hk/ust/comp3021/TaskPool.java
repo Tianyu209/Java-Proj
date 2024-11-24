@@ -16,19 +16,52 @@ public class TaskPool {
       this.idle = idle;
     }
 
-    public Optional<Runnable> getTask() {
+    public synchronized Optional<Runnable> getTask() {
       // part 3: task pool
-      throw new UnsupportedOperationException();
+      while (queue.isEmpty() && !terminated) {
+        try {
+          wait();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          return Optional.empty();
+        }
+      }
+      if (terminated) {
+        return Optional.empty();
+      }
+      working++;
+      return Optional.of(queue.poll());
+//      throw new UnsupportedOperationException();
     }
 
-    public void addTask(Runnable task) {
+    public synchronized void addTask(Runnable task) {
       // part 3: task pool
-      throw new UnsupportedOperationException();
+      queue.offer(task);
+      notify();
+//      throw new UnsupportedOperationException();
     }
 
-    public void terminate() {
+    public synchronized void terminate() {
       // part 3: task pool
-      throw new UnsupportedOperationException();
+      terminated = true;
+      notifyAll();
+//      throw new UnsupportedOperationException();
+    }
+
+    public synchronized void addTasks(List<Runnable> tasks) {
+      //use foreach to replace for-loop
+      tasks.forEach(queue::offer);
+      notifyAll();
+
+    }
+    public synchronized void taskFinished() {
+      working--;
+      if (working == 0 && queue.isEmpty()) {
+        idle.release();
+      }
+    }
+    public synchronized boolean isIdle() {
+      return queue.isEmpty() && working == 0;
     }
   }
 
@@ -38,14 +71,41 @@ public class TaskPool {
 
   public TaskPool(int numThreads) {
     // part 3: task pool
-    throw new UnsupportedOperationException();
+    idle = new Semaphore(0);
+    queue = new TaskQueue(numThreads, idle);
+    workers = new Thread[numThreads];
+
+    for (int i = 0; i < numThreads; i++) {
+      workers[i] = new Thread(() -> {
+        while (!Thread.currentThread().isInterrupted()) {
+          Optional<Runnable> task = queue.getTask();
+          if (task.isPresent()) {
+            try {
+              task.get().run();
+            } finally {
+              queue.taskFinished();
+            }
+          } else {
+            break;
+          }
+        }
+      });
+      workers[i].start();
+    }
+//    throw new UnsupportedOperationException();
   }
 
   public void addTask(Runnable task) { queue.addTask(task); }
 
   public void addTasks(List<Runnable> tasks) {
     // part 3: task pool
-    throw new UnsupportedOperationException();
+    queue.addTasks(tasks);
+    try {
+      idle.acquire();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+//    throw new UnsupportedOperationException();
   }
 
   public void terminate() {
