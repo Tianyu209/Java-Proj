@@ -9,27 +9,26 @@ public class SeqEvaluator<T> implements Evaluator<T> {
   @Override
   public void addDependency(FunNode<T> a, FunNode<T> b, int i) {
     // part 2: sequential function evaluator
-    listeners.computeIfAbsent(a, k -> new ArrayList<>()).add(result -> {
-      Optional<FunNode<T>> ready = b.setInput(i, result);
-      if (ready.isPresent()) {
-        evaluate(b);
-      }
-    });
-//    throw new UnsupportedOperationException();
+    listeners.computeIfAbsent(a, k -> new ArrayList<>())
+            .add(result -> Optional.ofNullable(b.setInput(i, result))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .ifPresent(this::evaluate));
   }
 
   public void start(List<FunNode<T>> nodes) {
     // part 2: sequential function evaluator
-    nodes.forEach(this::evaluate);
-//    throw new UnsupportedOperationException();
+    nodes.stream()
+            .filter(node -> !node.isEvaluated())
+            .forEach(this::evaluate);
   }
   private void evaluate(FunNode<T> node) {
     // Implement recursive evaluation logic here
+    if (node.isEvaluated()) {
+      return;
+    }
     node.eval();
-    T result = node.getResult();
     Optional.ofNullable(listeners.get(node))
-            .ifPresent(nodeListeners ->
-                    nodeListeners.forEach(listener -> listener.accept(result))
-            );
+            .ifPresent(list -> list.forEach(listener -> listener.accept(node.getResult())));
   }
 }

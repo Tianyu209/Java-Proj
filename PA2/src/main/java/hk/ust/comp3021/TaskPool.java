@@ -74,25 +74,23 @@ public class TaskPool {
     queue = new TaskQueue(numThreads, idle);
     workers = new Thread[numThreads];
 
-    for (int i = 0; i < numThreads; i++) {
+    IntStream.range(0, numThreads).forEach(i -> {
       workers[i] = new Thread(() -> {
         while (!Thread.currentThread().isInterrupted()) {
-          Optional<Runnable> task = queue.getTask();
-          if (task != null) {
-            try {
-              task.get().run();
-            } catch (Exception e) {
-              e.printStackTrace();
-            } finally {
-              queue.taskFinished();
-            }
-          } else {
-            break;
-          }
+          queue.getTask().ifPresentOrElse(
+                  task -> {
+                    try {
+                      task.run();
+                    } finally {
+                      queue.taskFinished();
+                    }
+                  },
+                  () -> Thread.currentThread().interrupt()
+          );
         }
       });
       workers[i].start();
-    }
+    });
 //    throw new UnsupportedOperationException();
   }
 
@@ -111,13 +109,13 @@ public class TaskPool {
 
   public void terminate() {
     queue.terminate();
-    for (Thread thread : workers) {
+    Arrays.stream(workers).forEach(thread -> {
       thread.interrupt();
       try {
         thread.join();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
-    }
+    });
   }
 }

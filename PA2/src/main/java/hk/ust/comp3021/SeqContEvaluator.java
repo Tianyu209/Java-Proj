@@ -9,28 +9,42 @@ public class SeqContEvaluator<T> implements Evaluator<T> {
 
   public void addDependency(FunNode<T> a, FunNode<T> b, int i) {
     // part 2: sequential function evaluator
-    listeners.computeIfAbsent(a, k -> new ArrayList<>()).add(value -> {
-      Optional<FunNode<T>> readyNode = b.setInput(i, value);
-      readyNode.ifPresent(toEval::add);
-    });
-      //    throw new UnsupportedOperationException();
-  }
+    Consumer<T> consumer = result -> {
+      b.setInput(i, result);
+      // Add b to queue if it's not already evaluated
+      if (!b.isEvaluated()) {
+        toEval.add(b);
+      }
+    };
+
+    // Add the consumer to a's listeners
+    listeners.computeIfAbsent(a, k -> new ArrayList<>()).add(consumer);  }
 
   public void start(List<FunNode<T>> nodes) {
     // part 2: sequential function evaluator
     toEval.addAll(nodes);
+
+    // Process queue until empty
     while (!toEval.isEmpty()) {
       FunNode<T> node = toEval.poll();
-      node.eval();
-      T result = node.getResult();
-      List<Consumer<T>> nodeListeners = listeners.get(node);
-      if (nodeListeners != null) {
+
+      // Skip if already evaluated
+      if (node.isEvaluated()) {
+        continue;
+      }
+
+      try {
+        node.eval();
+        // After successful evaluation, notify all listeners
+        List<Consumer<T>> nodeListeners = listeners.getOrDefault(node, Collections.emptyList());
+        T result = node.getResult();
         for (Consumer<T> listener : nodeListeners) {
           listener.accept(result);
         }
+      } catch (IllegalStateException e) {
+        // If evaluation fails due to missing inputs, add back to queue to try later
+        toEval.add(node);
       }
     }
-//    throw new UnsupportedOperationException();
   }
-
 }
