@@ -1,6 +1,7 @@
 package hk.ust.comp3021;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -20,25 +21,28 @@ public class FunNode<T> {
 
   public Optional<FunNode<T>> setInput(int i, T value) {
     // part 1: function data dependency graph node
-
-    inputs.set(i, Optional.of(value));
-    if (inputs.stream().allMatch(Optional::isPresent)) {
-      return Optional.of(this);
-    } else {
+    if (i < 0 || i >= inputs.size()) {
       return Optional.empty();
     }
+    inputs.set(i, Optional.of(value));
+    return inputs.stream().allMatch(Optional::isPresent) ? Optional.of(this) : Optional.empty();
 //    throw new UnsupportedOperationException();
   }
+  public List<Optional<T>> getInputs() {
+    return inputs;
+  }
+  public T getResult() {
+    if (output.isPresent()) {
+      return output.get();
+    } else {
+      throw new IllegalStateException("Result not available. Ensure eval() is called first.");
+    }
+  }
 
-  public T getResult() { return output.get(); }
-
-  public void eval(){
+  public synchronized void eval(){
     // part 1: function data dependency graph node
-    List<T> values = inputs.stream()
-            .map(Optional::get)
-            .toList();
+    List<T> values = inputs.stream().map(Optional::get).toList();
     output = Optional.of(f.apply(values));
-
 //    throw new UnsupportedOperationException();
   }
 }

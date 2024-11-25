@@ -6,10 +6,15 @@ import java.util.function.Consumer;
 public class SeqEvaluator<T> implements Evaluator<T> {
   private HashMap<FunNode<T>, List<Consumer<T>>> listeners = new HashMap<>();
 
+  @Override
   public void addDependency(FunNode<T> a, FunNode<T> b, int i) {
     // part 2: sequential function evaluator
-    listeners.computeIfAbsent(a, k -> new ArrayList<>()).add(value -> b.setInput(i, value));
-
+    listeners.computeIfAbsent(a, k -> new ArrayList<>()).add(result -> {
+      Optional<FunNode<T>> ready = b.setInput(i, result);
+      if (ready.isPresent()) {
+        evaluate(b);
+      }
+    });
 //    throw new UnsupportedOperationException();
   }
 
@@ -22,18 +27,9 @@ public class SeqEvaluator<T> implements Evaluator<T> {
     // Implement recursive evaluation logic here
     node.eval();
     T result = node.getResult();
-    List<Consumer<T>> nodeListeners = listeners.get(node);
-    if (nodeListeners != null) {
-      for (Consumer<T> listener : nodeListeners) {
-        listener.accept(result);
-        // Find the dependent node and recursively evaluate it
-        for (Map.Entry<FunNode<T>, List<Consumer<T>>> entry : listeners.entrySet()) {
-          if (entry.getValue().contains(listener)) {
-            evaluate(entry.getKey());
-            break;
-          }
-        }
-      }
-    }
+    Optional.ofNullable(listeners.get(node))
+            .ifPresent(nodeListeners ->
+                    nodeListeners.forEach(listener -> listener.accept(result))
+            );
   }
 }

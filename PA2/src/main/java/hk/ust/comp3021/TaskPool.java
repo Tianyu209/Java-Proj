@@ -30,7 +30,7 @@ public class TaskPool {
         return Optional.empty();
       }
       working++;
-      return Optional.of(queue.poll());
+      return Optional.ofNullable(queue.poll());
 //      throw new UnsupportedOperationException();
     }
 
@@ -71,7 +71,6 @@ public class TaskPool {
 
   public TaskPool(int numThreads) {
     // part 3: task pool
-    idle = new Semaphore(0);
     queue = new TaskQueue(numThreads, idle);
     workers = new Thread[numThreads];
 
@@ -79,9 +78,11 @@ public class TaskPool {
       workers[i] = new Thread(() -> {
         while (!Thread.currentThread().isInterrupted()) {
           Optional<Runnable> task = queue.getTask();
-          if (task.isPresent()) {
+          if (task != null) {
             try {
               task.get().run();
+            } catch (Exception e) {
+              e.printStackTrace();
             } finally {
               queue.taskFinished();
             }
@@ -111,13 +112,11 @@ public class TaskPool {
   public void terminate() {
     queue.terminate();
     for (Thread thread : workers) {
+      thread.interrupt();
       try {
-        // this will send an InterruptedException to the thread to wake it up
-        // from blocking operations such as Thread.sleep.
-        if (thread.isAlive())
-          thread.interrupt();
         thread.join();
-      } catch (InterruptedException ex) {
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
       }
     }
   }
