@@ -41,16 +41,11 @@ public class TaskPool {
       }
 //      throw new UnsupportedOperationException();
     }
-    public synchronized void addTasks(List<Runnable> tasks) {
-      // part 3: tasks pool
-      if (!terminated) {
-        queue.addAll(tasks);
-        notifyAll();
-      }
-    }
+
     public synchronized void terminate() {
       // part 3: task pool
       terminated = true;
+      queue.clear();
       notifyAll();
     }
     public synchronized void finishTask() {
@@ -59,6 +54,9 @@ public class TaskPool {
         idle.release();
       }
       notifyAll();
+    }
+    public synchronized boolean isTerminated() {
+      return terminated && queue.isEmpty() && working == 0;
     }
   }
 
@@ -74,16 +72,18 @@ public class TaskPool {
 
     Arrays.setAll(workers, i -> new Thread(() -> {
       while (!Thread.currentThread().isInterrupted()) {
-        queue.getTask().ifPresentOrElse(
-                task -> {
-                  try {
-                    task.run();
-                  } finally {
-                    queue.finishTask();
-                  }
-                },
-                () -> Thread.currentThread().interrupt()
-        );
+        Optional<Runnable> task = queue.getTask();
+        if (task.isEmpty()) {
+          if (queue.isTerminated()) {
+            break;
+          }
+          continue;
+        }
+        try {
+          task.get().run();
+        } finally {
+          queue.finishTask();
+        }
       }
     }));
     Arrays.stream(workers).forEach(Thread::start);
@@ -99,7 +99,7 @@ public class TaskPool {
         try {
             idle.acquire();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+          Thread.currentThread().interrupt();
         }
     }
   }
@@ -107,13 +107,18 @@ public class TaskPool {
   public void terminate() {
     queue.terminate();
     for (Thread thread : workers) {
+      thread.interrupt();
+    }
+    for (Thread thread : workers) {
       try {
-        // this will send an InterruptedException to the thread to wake it up
-        // from blocking operations such as Thread.sleep.
-        if (thread.isAlive())
-          thread.interrupt();
         thread.join();
-      } catch (InterruptedException ex) {
+      } catch (InterruptedException ignored) {
+        Thread.currentThread().interrupt();
+      }
+    }
+    for (Thread thread : workers) {
+      if (thread.isAlive()) {
+        thread.interrupt();
       }
     }
   }

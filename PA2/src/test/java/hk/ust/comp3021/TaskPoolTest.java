@@ -51,8 +51,8 @@ public class TaskPoolTest {
     IntStream.range(0, 40).forEach(i -> tasks.add(() -> {
       pool.addTask(() -> {
         try {
-//          Thread.sleep(10000000);
-          Thread.sleep(10);
+          Thread.sleep(10000000);
+//          Thread.sleep(10);
         } catch (InterruptedException ignored) {
         }
       });
