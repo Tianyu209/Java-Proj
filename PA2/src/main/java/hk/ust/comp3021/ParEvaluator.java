@@ -14,10 +14,10 @@ public class ParEvaluator<T> implements Evaluator<T> {
   public void addDependency(FunNode<T> a, FunNode<T> b, int i) {
     // part 4: parallel function evaluator
     listeners.computeIfAbsent(a, k -> Collections.synchronizedList(new ArrayList<>())).add(value -> {
-      synchronized (b) {
+
         Optional<FunNode<T>> readyNode = b.setInput(i, value);
         readyNode.ifPresent(node -> pool.addTask(() -> evaluate(node)));
-      }
+
     });
 //    throw new UnsupportedOperationException();
   }
@@ -38,9 +38,9 @@ public class ParEvaluator<T> implements Evaluator<T> {
     T result = node.getResult();
     List<Consumer<T>> nodeListeners = listeners.get(node);
     if (nodeListeners != null) {
-      synchronized (nodeListeners) {
+
         nodeListeners.forEach(listener -> listener.accept(result));
-      }
+
     }
   }
 }
