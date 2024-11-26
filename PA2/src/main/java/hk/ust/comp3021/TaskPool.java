@@ -2,6 +2,8 @@ package hk.ust.comp3021;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TaskPool {
   public class TaskQueue {
@@ -17,19 +19,23 @@ public class TaskPool {
 
     public synchronized Optional<Runnable> getTask() {
       // part 3: task pool
-      while (queue.isEmpty() && !terminated) {
+      if (terminated && queue.isEmpty()) {
+        return Optional.empty();
+      }
+
+      if (queue.isEmpty()) {
         try {
           wait();
         } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
+          return Optional.empty();
+        }
+        if (terminated && queue.isEmpty()) {
           return Optional.empty();
         }
       }
-      if (queue.isEmpty()) {
-        return Optional.empty();
-      }
+
       working++;
-      return Optional.of(queue.poll());
+      return Optional.ofNullable(queue.poll());
 //      throw new UnsupportedOperationException();
     }
 
@@ -37,7 +43,7 @@ public class TaskPool {
       // part 3: task pool
       if (!terminated) {
         queue.offer(task);
-        notifyAll();
+        notify();
       }
 //      throw new UnsupportedOperationException();
     }
@@ -53,7 +59,6 @@ public class TaskPool {
       if (working == 0 && queue.isEmpty()) {
         idle.release();
       }
-      notifyAll();
     }
     public synchronized boolean isTerminated() {
       return terminated && queue.isEmpty() && working == 0;
@@ -70,23 +75,31 @@ public class TaskPool {
     queue = new TaskQueue(numThreads, idle);
     workers = new Thread[numThreads];
 
-    Arrays.setAll(workers, i -> new Thread(() -> {
+    Runnable workerTask = () -> {
       while (!Thread.currentThread().isInterrupted()) {
-        Optional<Runnable> task = queue.getTask();
-        if (task.isEmpty()) {
-          if (queue.isTerminated()) {
-            break;
-          }
-          continue;
-        }
         try {
-          task.get().run();
-        } finally {
-          queue.finishTask();
+          queue.getTask().ifPresentOrElse(
+                  task -> {
+                    try {
+                      task.run();
+                    } finally {
+                      queue.finishTask();
+                    }
+                  },
+                  () -> Thread.currentThread().interrupt()
+          );
+        } catch (Exception e) {
+          // Log the exception if needed
+          Thread.currentThread().interrupt();
         }
       }
-    }));
-    Arrays.stream(workers).forEach(Thread::start);
+    };
+
+    Arrays.setAll(workers, i -> {
+      Thread worker = new Thread(workerTask);
+      worker.start();
+      return worker;
+    });
 //    throw new UnsupportedOperationException();
   }
 
@@ -94,31 +107,31 @@ public class TaskPool {
 
   public void addTasks(List<Runnable> tasks) {
     // part 3: task pool
-    if (!tasks.isEmpty()) {
-      tasks.forEach(this::addTask);
-        try {
-            idle.acquire();
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
+    if (tasks.isEmpty()) {
+      return;
+    }
+    final int BATCH_SIZE = 64;
+    IntStream.range(0, tasks.size())
+            .boxed()
+            .collect(Collectors.groupingBy(i -> i / BATCH_SIZE))
+            .values()
+            .forEach(batch -> batch.forEach(i -> queue.addTask(tasks.get(i))));
+    try {
+      idle.acquire();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
   }
 
   public void terminate() {
     queue.terminate();
-    for (Thread thread : workers) {
-      thread.interrupt();
+    for (Thread worker : workers) {
+      worker.interrupt();
     }
-    for (Thread thread : workers) {
+    for (Thread worker : workers) {
       try {
-        thread.join();
+        worker.join(50);
       } catch (InterruptedException ignored) {
-        Thread.currentThread().interrupt();
-      }
-    }
-    for (Thread thread : workers) {
-      if (thread.isAlive()) {
-        thread.interrupt();
       }
     }
   }
