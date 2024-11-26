@@ -2,7 +2,6 @@ package hk.ust.comp3021;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
-import java.util.stream.IntStream;
 
 public class TaskPool {
   public class TaskQueue {
@@ -45,19 +44,19 @@ public class TaskPool {
       // part 3: task pool
       terminated = true;
       notifyAll();
-//      throw new UnsupportedOperationException();
+    }
+//    public synchronized void taskFinished() {
+//      working--;
+//      if (working == 0 && queue.isEmpty() && !terminated) {
+//        idle.release();
+//      }
+//    }
+    public void decrementWorking() {
+      --working;
     }
 
-    public synchronized void addTasks(List<Runnable> tasks) {
-      //use foreach to replace for-loop
-      queue.addAll(tasks);
-      notifyAll();
-    }
-    public synchronized void taskFinished() {
-      working--;
-      if (working == 0 && queue.isEmpty() && !terminated) {
-        idle.release();
-      }
+    public int getWorking() {
+      return working;
     }
   }
 
@@ -78,7 +77,12 @@ public class TaskPool {
         try {
           task.get().run();
         } finally {
-          queue.taskFinished();
+          synchronized (queue) {
+            queue.decrementWorking();
+            if (queue.getWorking() == 0 && queue.queue.isEmpty() && !queue.terminated) {
+              idle.release();
+            }
+          }
         }
       }
     }));
@@ -93,7 +97,8 @@ public class TaskPool {
     if (tasks.isEmpty()) {
       return;
     }
-    queue.addTasks(tasks);
+//    queue.addTasks(tasks);
+    tasks.forEach(this::addTask);
     try {
       idle.acquire();
     } catch (InterruptedException e) {
