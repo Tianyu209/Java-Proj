@@ -8,11 +8,11 @@ public class TaskPool {
   public class TaskQueue {
     private ArrayDeque<Runnable> queue = new ArrayDeque<>();
     private boolean terminated = false;
-    private int working;
+    private int working =0;
     private Semaphore idle;
 
     public TaskQueue(int numThreads, Semaphore idle) {
-      working = numThreads;
+      working = 0;
       this.idle = idle;
     }
 
@@ -26,18 +26,18 @@ public class TaskPool {
           return Optional.empty();
         }
       }
-      if (terminated) {
+      if (queue.isEmpty() && terminated) {
         return Optional.empty();
       }
       working++;
-      return Optional.ofNullable(queue.poll());
+      return Optional.of(queue.poll());
 //      throw new UnsupportedOperationException();
     }
 
     public synchronized void addTask(Runnable task) {
       // part 3: task pool
-      queue.offer(task);
-      notify();
+      queue.add(task);
+      notifyAll();
 //      throw new UnsupportedOperationException();
     }
 
@@ -50,18 +50,14 @@ public class TaskPool {
 
     public synchronized void addTasks(List<Runnable> tasks) {
       //use foreach to replace for-loop
-      tasks.forEach(queue::offer);
+      queue.addAll(tasks);
       notifyAll();
-
     }
     public synchronized void taskFinished() {
       working--;
-      if (working == 0 && queue.isEmpty()) {
+      if (working == 0 && queue.isEmpty() && !terminated) {
         idle.release();
       }
-    }
-    public synchronized boolean isIdle() {
-      return queue.isEmpty() && working == 0;
     }
   }
 
@@ -71,26 +67,22 @@ public class TaskPool {
 
   public TaskPool(int numThreads) {
     // part 3: task pool
+    idle = new Semaphore(0);
     queue = new TaskQueue(numThreads, idle);
     workers = new Thread[numThreads];
 
-    IntStream.range(0, numThreads).forEach(i -> {
-      workers[i] = new Thread(() -> {
-        while (!Thread.currentThread().isInterrupted()) {
-          queue.getTask().ifPresentOrElse(
-                  task -> {
-                    try {
-                      task.run();
-                    } finally {
-                      queue.taskFinished();
-                    }
-                  },
-                  () -> Thread.currentThread().interrupt()
-          );
+    Arrays.setAll(workers, i -> new Thread(() -> {
+      while (!Thread.currentThread().isInterrupted()) {
+        Optional<Runnable> task = queue.getTask();
+        if (task.isEmpty()) break; // Exit when no tasks are left and termination is signaled
+        try {
+          task.get().run();
+        } finally {
+          queue.taskFinished();
         }
-      });
-      workers[i].start();
-    });
+      }
+    }));
+    Arrays.stream(workers).forEach(Thread::start);
 //    throw new UnsupportedOperationException();
   }
 
@@ -98,13 +90,15 @@ public class TaskPool {
 
   public void addTasks(List<Runnable> tasks) {
     // part 3: task pool
+    if (tasks.isEmpty()) {
+      return;
+    }
     queue.addTasks(tasks);
     try {
       idle.acquire();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
-//    throw new UnsupportedOperationException();
   }
 
   public void terminate() {
