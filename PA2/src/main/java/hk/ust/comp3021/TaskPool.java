@@ -6,10 +6,10 @@ import java.util.stream.IntStream;
 
 public class TaskPool {
   public class TaskQueue {
-    private ArrayDeque<Runnable> queue = new ArrayDeque<>();
+    private final ArrayDeque<Runnable> queue = new ArrayDeque<>();
     private boolean terminated = false;
     private int working =0;
-    private Semaphore idle;
+    private final Semaphore idle;
 
     public TaskQueue(int numThreads, Semaphore idle) {
       working = 0;
@@ -61,8 +61,8 @@ public class TaskPool {
     }
   }
 
-  private TaskQueue queue;
-  private Thread workers[];
+  private final TaskQueue queue;
+  private final Thread[] workers;
   private Semaphore idle = new Semaphore(0);
 
   public TaskPool(int numThreads) {
@@ -74,7 +74,7 @@ public class TaskPool {
     Arrays.setAll(workers, i -> new Thread(() -> {
       while (!Thread.currentThread().isInterrupted()) {
         Optional<Runnable> task = queue.getTask();
-        if (task.isEmpty()) break; // Exit when no tasks are left and termination is signaled
+        if (task.isEmpty()) break;
         try {
           task.get().run();
         } finally {

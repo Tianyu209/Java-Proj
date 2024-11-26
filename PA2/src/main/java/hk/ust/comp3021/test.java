@@ -15,9 +15,9 @@ package hk.ust.comp3021;
         }
 
         // Uncomment one of the following implementations to test
-        public void run() {
-             write();
-         }
+//        public void run() {
+//             write();
+//         }
 //         Option C: Synchronized run method (instance level)
 //         public synchronized void run() {
 //             write();
@@ -31,15 +31,19 @@ package hk.ust.comp3021;
 //         }
 
         // Option F: Synchronized block on static `count`
-//        public void run() {
-//            synchronized (count) {
-//                write();
-//            }
-//        }
+        public void run() {
+            synchronized (count) {
+                write();
+            }
+        }
 
-        public static void main(String[] args) {
-            new test("A").start();
-            new test("B").start();
+        public static void main(String[] args) throws InterruptedException {
+            Thread A = new test("A");
+            Thread B = new test("B");
+            Thread.sleep(100);
+            A.start();
+            B.start();
+
         }
     }
 
