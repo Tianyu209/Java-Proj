@@ -7,7 +7,7 @@ public class TaskPool {
   public class TaskQueue {
     private final ArrayDeque<Runnable> queue = new ArrayDeque<>();
     private boolean terminated = false;
-    private int working =0;
+    private int working ;
     private final Semaphore idle;
 
     public TaskQueue(int numThreads, Semaphore idle) {
@@ -25,7 +25,7 @@ public class TaskPool {
           return Optional.empty();
         }
       }
-      if (queue.isEmpty() && terminated) {
+      if (queue.isEmpty()) {
         return Optional.empty();
       }
       working++;
@@ -45,12 +45,6 @@ public class TaskPool {
       terminated = true;
       notifyAll();
     }
-//    public synchronized void taskFinished() {
-//      working--;
-//      if (working == 0 && queue.isEmpty() && !terminated) {
-//        idle.release();
-//      }
-//    }
     public void decrementWorking() {
       --working;
     }
