@@ -35,22 +35,30 @@ public class TaskPool {
 
     public synchronized void addTask(Runnable task) {
       // part 3: task pool
-      queue.add(task);
-      notifyAll();
+      if (!terminated) {
+        queue.offer(task);
+        notifyAll();
+      }
 //      throw new UnsupportedOperationException();
     }
-
+    public synchronized void addTasks(List<Runnable> tasks) {
+      // part 3: tasks pool
+      if (!terminated) {
+        queue.addAll(tasks);
+        notifyAll();
+      }
+    }
     public synchronized void terminate() {
       // part 3: task pool
       terminated = true;
       notifyAll();
     }
-    public void decrementWorking() {
-      --working;
-    }
-
-    public int getWorking() {
-      return working;
+    public synchronized void finishTask() {
+      working--;
+      if (working == 0 && queue.isEmpty()) {
+        idle.release();
+      }
+      notifyAll();
     }
   }
 
@@ -66,18 +74,16 @@ public class TaskPool {
 
     Arrays.setAll(workers, i -> new Thread(() -> {
       while (!Thread.currentThread().isInterrupted()) {
-        Optional<Runnable> task = queue.getTask();
-        if (task.isEmpty()) break;
-        try {
-          task.get().run();
-        } finally {
-          synchronized (queue) {
-            queue.decrementWorking();
-            if (queue.getWorking() == 0 && queue.queue.isEmpty() && !queue.terminated) {
-              idle.release();
-            }
-          }
-        }
+        queue.getTask().ifPresentOrElse(
+                task -> {
+                  try {
+                    task.run();
+                  } finally {
+                    queue.finishTask();
+                  }
+                },
+                () -> Thread.currentThread().interrupt()
+        );
       }
     }));
     Arrays.stream(workers).forEach(Thread::start);
@@ -88,27 +94,27 @@ public class TaskPool {
 
   public void addTasks(List<Runnable> tasks) {
     // part 3: task pool
-    if (tasks.isEmpty()) {
-      return;
-    }
-//    queue.addTasks(tasks);
-    tasks.forEach(this::addTask);
-    try {
-      idle.acquire();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
+    if (!tasks.isEmpty()) {
+      tasks.forEach(this::addTask);
+        try {
+            idle.acquire();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
   }
 
   public void terminate() {
     queue.terminate();
-    Arrays.stream(workers).forEach(thread -> {
-      thread.interrupt();
+    for (Thread thread : workers) {
       try {
+        // this will send an InterruptedException to the thread to wake it up
+        // from blocking operations such as Thread.sleep.
+        if (thread.isAlive())
+          thread.interrupt();
         thread.join();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
+      } catch (InterruptedException ex) {
       }
-    });
+    }
   }
 }
