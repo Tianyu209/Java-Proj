@@ -38,9 +38,7 @@ public class ParEvaluator<T> implements Evaluator<T> {
     T result = node.getResult();
     List<Consumer<T>> nodeListeners = listeners.get(node);
     if (nodeListeners != null) {
-
         nodeListeners.forEach(listener -> listener.accept(result));
-
     }
   }
 }
