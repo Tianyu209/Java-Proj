@@ -2,6 +2,8 @@ package hk.ust.comp3021;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class TaskPool {
   public class TaskQueue {
@@ -48,16 +50,6 @@ public class TaskPool {
       queue.clear();
       notifyAll();
     }
-    public synchronized void finishTask() {
-      working++;
-      if (working == getWorkingNumber() && queue.isEmpty()) {
-        idle.release();
-      }
-      notifyAll();
-    }
-    public boolean isTerminated() {
-      return terminated && queue.isEmpty() && working == getWorkingNumber();
-    }
   }
 
   private final TaskQueue queue;
@@ -67,24 +59,21 @@ public class TaskPool {
   public TaskPool(int numThreads) {
     // part 3: task pool
     queue = new TaskQueue(numThreads, idle);
-    workers = new Thread[numThreads];
+    workers = IntStream.range(0, numThreads)
+            .mapToObj(i -> new Thread(() ->
+                    Stream.generate(queue::getTask)
+                            .takeWhile(Optional::isPresent)
+                            .forEach(task -> {
+                              task.get().run();
+                              synchronized (queue) {
+                                queue.working++;
+                                if (queue.working == getWorkingNumber() && queue.queue.isEmpty())
+                                  idle.release();
+                              }
+                            })))
+            .toArray(Thread[]::new);
 
-    Arrays.setAll(workers, i -> new Thread(() -> {
-      while (!Thread.currentThread().isInterrupted()) {
-        Optional<Runnable> task = queue.getTask();
-        if (task.isEmpty()) {
-          if (queue.isTerminated()) {
-            break;
-          }
-          continue;
-        }
-        try {
-          task.get().run();
-        } finally {
-          queue.finishTask();
-        }
-      }
-    }));
+
     Arrays.stream(workers).forEach(Thread::start);
 //    throw new UnsupportedOperationException();
   }
@@ -94,7 +83,7 @@ public class TaskPool {
   public void addTasks(List<Runnable> tasks) {
     // part 3: task pool
     if (!tasks.isEmpty()) {
-      tasks.forEach(this::addTask);
+      tasks.forEach(queue::addTask);
       try {
         idle.acquire();
       } catch (InterruptedException e) {

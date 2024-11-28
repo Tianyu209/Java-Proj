@@ -2,7 +2,6 @@ package hk.ust.comp3021;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public class SeqContEvaluator<T> implements Evaluator<T> {
   private final ArrayDeque<FunNode<T>> toEval = new ArrayDeque<>();
