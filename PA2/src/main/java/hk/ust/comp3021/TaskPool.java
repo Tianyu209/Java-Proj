@@ -72,8 +72,6 @@ public class TaskPool {
                               }
                             })))
             .toArray(Thread[]::new);
-
-
     Arrays.stream(workers).forEach(Thread::start);
 //    throw new UnsupportedOperationException();
   }
@@ -95,18 +93,13 @@ public class TaskPool {
   public void terminate() {
     queue.terminate();
     for (Thread thread : workers) {
-      thread.interrupt();
-    }
-    for (Thread thread : workers) {
       try {
+        // this will send an InterruptedException to the thread to wake it up
+        // from blocking operations such as Thread.sleep.
+        if (thread.isAlive())
+          thread.interrupt();
         thread.join();
-      } catch (InterruptedException ignored) {
-        Thread.currentThread().interrupt();
-      }
-    }
-    for (Thread thread : workers) {
-      if (thread.isAlive()) {
-        thread.interrupt();
+      } catch (InterruptedException ex) {
       }
     }
   }
