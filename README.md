@@ -1,3 +1,3 @@
-# COMP3021lab
+# COMP3021
 
-Chun Yui Tran, 20963715
+
